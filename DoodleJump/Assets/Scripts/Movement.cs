@@ -18,9 +18,22 @@ public class Movement : MonoBehaviour {
 	[SerializeField]
 	private float _bounceSpeed = 15.0f;
 
-	private int _currentHeight = 0;
+	[SerializeField]
+	private GameObject _rightBoundary;
 
+	[SerializeField]
+	private GameObject _leftBoundary;
+
+	private int _currentHeight = 0;
 	private int _maxHeight = 0;
+
+	//[System.Serializable]
+	//public class MaxHeightEvent : UnityEvent<float> {}
+	//[SerializeField]
+	//private MaxHeightEvent _maxHeightEvent;
+
+	[SerializeField]
+	private GameObject _mainCamera;
 
 	// Use this for initialization
 	void Start () {
@@ -32,14 +45,23 @@ public class Movement : MonoBehaviour {
 		_currentHeight = Mathf.FloorToInt(transform.position.y);
 		float input = Input.GetAxis (INPUT_AXIS);
 
+		Vector3 leftWallPos = _leftBoundary.gameObject.transform.position;
+		_leftBoundary.gameObject.transform.position = new Vector3 (leftWallPos.x, _currentHeight, leftWallPos.z);
+
+		Vector3 rightWallPos = _rightBoundary.gameObject.transform.position;
+		_rightBoundary.gameObject.transform.position = new Vector3 (rightWallPos.x, _currentHeight, rightWallPos.z);
+
+		float yDifference = _gravity * Time.deltaTime;
+
 		_velocity.x = input * _moveSpeed;
-		_velocity.y += _gravity * Time.deltaTime;
+		_velocity.y += yDifference;
 
 		//Debug.Log (_velocity);
 
 		transform.position += _velocity * Time.deltaTime;
 		if (_currentHeight > _maxHeight) {
 			_maxHeight = _currentHeight;
+			Camera.main.transform.position += new Vector3 (0, yDifference+1.3f, 0);
 			Debug.Log (_maxHeight);
 		}
 	}
@@ -51,6 +73,14 @@ public class Movement : MonoBehaviour {
 		if (other.gameObject.layer == LayerMask.NameToLayer ("Platform")) {
 			Debug.Log ("trigger2");
 			_velocity.y = _bounceSpeed;
+		} else if (other.gameObject.layer == LayerMask.NameToLayer ("Boundary")) {
+			Debug.Log ("hit boundary");
+			Debug.Log (other.gameObject == _rightBoundary);
+			if (other.gameObject == _rightBoundary) {
+				transform.position = new Vector3 (_leftBoundary.transform.position.x + 1f, transform.position.y, transform.position.z);
+			} else if (other.gameObject == _leftBoundary) {
+				transform.position = new Vector3 (_rightBoundary.transform.position.x - 1f, transform.position.y, transform.position.z);
+			}
 		}
 	}
 }
