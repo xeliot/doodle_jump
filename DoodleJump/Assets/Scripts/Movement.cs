@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Movement : MonoBehaviour {
 
@@ -13,7 +14,7 @@ public class Movement : MonoBehaviour {
 	private Vector3 _velocity;
 
 	[SerializeField]
-	private float _gravity = -20.0f;
+	private float _gravity = -19.0f;
 
 	[SerializeField]
 	private float _bounceSpeed = 15.0f;
@@ -27,10 +28,10 @@ public class Movement : MonoBehaviour {
 	private int _currentHeight = 0;
 	private int _maxHeight = 0;
 
-	//[System.Serializable]
-	//public class MaxHeightEvent : UnityEvent<float> {}
-	//[SerializeField]
-	//private MaxHeightEvent _maxHeightEvent;
+	[System.Serializable]
+	public class MaxHeightEvent : UnityEvent<float> {}
+	[SerializeField]
+	private MaxHeightEvent _maxHeightEvent;
 
 	[SerializeField]
 	private GameObject _mainCamera;
@@ -61,21 +62,19 @@ public class Movement : MonoBehaviour {
 		transform.position += _velocity * Time.deltaTime;
 		if (_currentHeight > _maxHeight) {
 			_maxHeight = _currentHeight;
-			Camera.main.transform.position += new Vector3 (0, yDifference+1.3f, 0);
+			//Camera.main.transform.position += new Vector3 (0, yDifference+1.1f, 0);
+			_maxHeightEvent.Invoke (_maxHeight);
 			Debug.Log (_maxHeight);
 		}
 	}
 
 	void OnTriggerEnter(Collider other) {
 
-		Debug.Log ("trigger1");
-
 		if (other.gameObject.layer == LayerMask.NameToLayer ("Platform")) {
-			Debug.Log ("trigger2");
-			_velocity.y = _bounceSpeed;
+			if (_velocity.y < 0f) {
+				_velocity.y = _bounceSpeed;
+			}
 		} else if (other.gameObject.layer == LayerMask.NameToLayer ("Boundary")) {
-			Debug.Log ("hit boundary");
-			Debug.Log (other.gameObject == _rightBoundary);
 			if (other.gameObject == _rightBoundary) {
 				transform.position = new Vector3 (_leftBoundary.transform.position.x + 1f, transform.position.y, transform.position.z);
 			} else if (other.gameObject == _leftBoundary) {
