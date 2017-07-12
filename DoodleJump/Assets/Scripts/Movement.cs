@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class Movement : MonoBehaviour {
 
@@ -36,9 +37,12 @@ public class Movement : MonoBehaviour {
 	[SerializeField]
 	private GameObject _mainCamera;
 
+	private Collider _playerCollider;
+
 	// Use this for initialization
 	void Start () {
 		_currentHeight = 0;
+		_playerCollider = GetComponent<Collider> ();
 	}
 	
 	// Update is called once per frame
@@ -66,6 +70,10 @@ public class Movement : MonoBehaviour {
 			_maxHeightEvent.Invoke (_maxHeight);
 			Debug.Log (_maxHeight);
 		}
+		if (_currentHeight < (_maxHeight - Config.FALL_THRESHOLD)) {
+			_playerCollider.enabled = false;
+			StartCoroutine (LoadGameOverScene());
+		}
 	}
 
 	void OnTriggerEnter(Collider other) {
@@ -81,5 +89,11 @@ public class Movement : MonoBehaviour {
 				transform.position = new Vector3 (_rightBoundary.transform.position.x - 1f, transform.position.y, transform.position.z);
 			}
 		}
+	}
+
+	IEnumerator LoadGameOverScene () {
+		yield return new WaitForSeconds (2);
+		SceneManager.LoadScene ("GameOver");
+		yield return null;
 	}
 }
